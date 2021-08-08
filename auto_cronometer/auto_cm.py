@@ -91,7 +91,7 @@ class AutoCronometer():
         log_attrs(grand_parent, 'grand_parent')
         return grand_parent
 
-    def get_recipe_page_sources(self, print_progress=False):
+    def get_recipe_page_sources(self):
         recipes = self.get_recipes_list_items()
         htmls = []
         for recipe in tqdm(recipes):

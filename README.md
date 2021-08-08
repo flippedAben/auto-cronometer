@@ -22,6 +22,7 @@ This tool was made with my particular behaviors in mind:
 
 - The Cronometer website doesn't get a massive UI update that messes up all of
   my assumptions on which web elements are where.
+- Cronometer recipe ID changes whenever you edit a recipe.
 
 ## Setup
 

@@ -11,9 +11,9 @@ Automate food/nutrition bookkeeping tasks.
 Commands:
     scrape    Scrape Cronometer's website for recipe HTMLs.
     parse     Parse scraped HTMLs in <html_dir> into JSON files.
-    diary     Add current set of favorite recipes to today's diary.
-    cloud     Put the grocery list on the cloud.
-    active    Initialize a active.yaml file. All recipes included.
+    active    Initialize a active.yaml file with all recipes included.
+    cloud     Put the grocery list defined by the active.yaml on the cloud.
+    diary     Add recipes in active.yaml to today's diary.
 
 Options:
     --html_dir DIR    Store the HTMLs in DIR [default: raw_htmls]

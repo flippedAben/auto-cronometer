@@ -1,5 +1,5 @@
 config.sh
-active.yaml
+active*.yaml
 data/**
 raw_htmls/**
 dist/**

@@ -9,6 +9,7 @@ def scrape_recipes(out_dir):
 
     shutil.rmtree(out_dir, ignore_errors=True)
     os.makedirs(out_dir)
+
     with auto_cm.AutoCronometer() as ac:
         ac.login()
         ac.go_to_recipes_tab()
