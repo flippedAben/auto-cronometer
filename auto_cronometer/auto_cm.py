@@ -72,20 +72,31 @@ class AutoCronometer():
         return gwt_parser.parse_recipe_list(self.post(data))
 
     def get_recipe(self, recipe_id):
-        # For recipes, the food_id is the recipe ID.
-        # The responses of custom recipes and Cronometer default foods are
-        # different, so be aware. Cronometer calls it getFood for both.
+        """
+        Returns a recipe consisting of:
+            - a list of ingredient (amounts in grams)
+            - a unit conversion mapping (grams per unit) per unique ingredient
+
+        For recipes, the food_id is the recipe ID.
+        The responses of custom recipes and Cronometer default foods are
+        different, so be aware. Cronometer calls it getFood for both.
+        """
         print('Get recipe')
         recipe_data = gwt_parser.parse_recipe(self.get_food_raw(recipe_id))
         recipe = {
             'id': recipe_id,
             'name': recipe_data['name'],
             'ingredients': [],
+            'grams_per_unit': {},
         }
         print('Loop through ingredients')
         for ingredient in recipe_data['ingredients']:
             food = gwt_parser.parse_food(self.get_food_raw(ingredient['id']))
-            ingredient.update(food)
+
+            if food['id'] not in recipe['grams_per_unit']:
+                recipe['grams_per_unit'][food['id']] = food['grams_per_unit']
+
+            ingredient['name'] = food['name']
             recipe['ingredients'].append(ingredient)
         print('Finish loop')
         return recipe

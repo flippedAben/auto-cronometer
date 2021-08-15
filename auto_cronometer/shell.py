@@ -16,15 +16,22 @@ class CronometerShell(cmd.Cmd):
         recipe_id_list = self.ac.get_recipe_list()
         with open(recipe_list_yaml, 'r') as f:
             recipe_list = yaml.load(f, Loader=yaml.FullLoader)
-        recipes = []
+
+        locked_recipes = {
+            'recipes': [],
+            'grams_per_unit': {},
+        }
         # TODO Make this faster by sending parallel recipes and food service
         # calls.
         for recipe_name in recipe_list:
             recipe_id = recipe_id_list[recipe_name]
             recipe = self.ac.get_recipe(recipe_id)
-            recipes.append(recipe)
+            unit_conversions = recipe.pop('grams_per_unit')
+            locked_recipes['recipes'].append(recipe)
+            locked_recipes['grams_per_unit'].update(unit_conversions)
+
         with open('locked_' + recipe_list_yaml, 'w') as f:
-            yaml.dump(recipes, f)
+            yaml.dump(locked_recipes, f)
 
     def do_pull(self, recipe_list_yaml):
         "Pull recipe list from Cronometer into active.yaml"

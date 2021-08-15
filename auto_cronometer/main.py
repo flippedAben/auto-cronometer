@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Usage:
     autocm shell
-    autocm groceries <yaml>
+    autocm groceries <locked_yaml>
 
 Automate food/nutrition bookkeeping tasks.
 
 Commands:
     shell      Opens a shell to interact with Cronometer.
-    groceries  Upload the grocery list defined by <yaml> to the cloud.
+    groceries  Upload the grocery list defined by <locked_yaml> to the cloud.
 
 """
 from docopt import docopt
@@ -20,7 +20,7 @@ def main():
     if args['shell']:
         CronometerShell().cmdloop()
     elif args['groceries']:
-        cloudify.upload_grocery_list(args['<yaml>'])
+        cloudify.upload_grocery_list(args['<locked_yaml>'])
 
 
 if __name__ == '__main__':
