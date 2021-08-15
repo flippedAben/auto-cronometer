@@ -18,29 +18,19 @@ class CronometerShell(cmd.Cmd):
 
     def do_lock(self, recipe_list_yaml):
         "Lock ingredients and amounts of the YAML's recipe list"
-        recipe_id_list = self.ac.get_recipe_list()
+        recipe_name_to_id = self.ac.get_recipe_name_to_id()
         with open(recipe_list_yaml, 'r') as f:
             recipe_list = yaml.load(f, Loader=yaml.FullLoader)
 
-        locked_recipes = {
-            'recipes': [],
-            'grams_per_unit': {},
-        }
-        # TODO Make this faster by sending parallel recipes and food service
-        # calls.
-        for recipe_name in recipe_list:
-            recipe_id = recipe_id_list[recipe_name]
-            recipe = self.ac.get_recipe(recipe_id)
-            unit_conversions = recipe.pop('grams_per_unit')
-            locked_recipes['recipes'].append(recipe)
-            locked_recipes['grams_per_unit'].update(unit_conversions)
+        recipe_ids = [recipe_name_to_id[name] for name in recipe_list]
+        recipes = self.ac.get_recipes(recipe_ids)
 
         with open('locked_' + recipe_list_yaml, 'w') as f:
-            yaml.dump(locked_recipes, f)
+            yaml.dump(recipes, f)
 
     def do_pull(self, recipe_list_yaml):
         "Pull the recipe list from Cronometer into a YAML file"
-        recipe_id_list = self.ac.get_recipe_list()
+        recipe_id_list = self.ac.get_recipe_name_to_id()
         with open(recipe_list_yaml, 'w') as f:
             yaml.dump(list(recipe_id_list.keys()), f)
 

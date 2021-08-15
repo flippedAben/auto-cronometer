@@ -1,3 +1,5 @@
+import aiohttp
+import asyncio
 from selenium import webdriver
 import os
 import time
@@ -66,46 +68,66 @@ class AutoCronometer():
             data=data)
         return resp.content
 
-    def get_recipe_list(self):
+    def get_recipe_name_to_id(self):
         # sesnonce changes sometimes, so make sure to get it before requesting
         data = f'7|0|6|{API_URL}/|{SOME_ID}|{SERVICE_NAME}|findMyFoods|java.lang.String/2004016611|{self.nonce}|1|2|3|4|1|5|6|'
-        return gwt_parser.parse_recipe_list(self.post(data))
+        return gwt_parser.parse_recipe_name_to_id(self.post(data))
 
-    def get_recipe(self, recipe_id):
+    def get_recipes(self, recipe_ids):
         """
-        Returns a recipe consisting of:
-            - a list of ingredient (amounts in grams)
+        Returns dictionary where each recipe consists
+            - a list of ingredients (amounts in grams)
             - a unit conversion mapping (grams per unit) per unique ingredient
 
-        For recipes, the food_id is the recipe ID.
-        The responses of custom recipes and Cronometer default foods are
-        different, so be aware. Cronometer calls it getFood for both.
         """
-        print('Get recipe')
-        recipe_data = gwt_parser.parse_recipe(self.get_food_raw(recipe_id))
-        recipe = {
-            'id': recipe_id,
-            'name': recipe_data['name'],
-            'ingredients': [],
-            'grams_per_unit': {},
+        recipes_raw = asyncio.run(self.get_foods_raw(recipe_ids))
+
+        recipes = {
+            'recipes': [],
+            'ingredients': {},
         }
-        print('Loop through ingredients')
-        for ingredient in recipe_data['ingredients']:
-            food = gwt_parser.parse_food(self.get_food_raw(ingredient['id']))
+        ingredient_ids = []
+        for recipe_id, recipe_raw in zip(recipe_ids, recipes_raw):
+            recipe = gwt_parser.parse_recipe(recipe_raw)
+            recipe['id'] = recipe_id
+            recipes['recipes'].append(recipe)
 
-            if food['id'] not in recipe['grams_per_unit']:
-                recipe['grams_per_unit'][food['id']] = food['grams_per_unit']
+            ingredient_ids.extend(i['id'] for i in recipe['ingredients'])
+        ingredient_ids = list(set(ingredient_ids))
 
-            ingredient['name'] = food['name']
-            recipe['ingredients'].append(ingredient)
-        print('Finish loop')
-        return recipe
+        ingredients_raw = asyncio.run(self.get_foods_raw(ingredient_ids))
 
-    def get_food_raw(self, food_id):
+        for food_raw in ingredients_raw:
+            food = gwt_parser.parse_food(food_raw)
+            food_id = food.pop('id')
+            recipes['ingredients'][food_id] = food
+
+        return recipes
+
+    async def get_foods_raw(self, food_ids):
+        """
+        Get many foods concurrently.
+
+        For recipes, the food_id is the recipe ID.
+        """
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            for food_id in food_ids:
+                tasks.append(asyncio.create_task(
+                    self.get_food_raw(session, food_id))
+                )
+            return await asyncio.gather(*tasks)
+
+    async def get_food_raw(self, session, food_id):
         """
         Gets the raw response (i.e. no parsing) of a getFood service call.
 
         Note: the food itself may or may not be actually raw.
         """
         data = f'7|0|7|{API_URL}/|{SOME_ID}|{SERVICE_NAME}|getFood|java.lang.String/2004016611|I|{self.nonce}|1|2|3|4|2|5|6|7|{food_id}|'
-        return self.post(data)
+        async with session.post(
+                f'{API_URL}/app',
+                headers=HEADERS,
+                data=data) as resp:
+            return await resp.text()
+

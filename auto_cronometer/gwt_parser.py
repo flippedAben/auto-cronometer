@@ -2,7 +2,7 @@
 Parses GWT response objects into Python lists.
 """
 
-def parse_recipe_list(response):
+def parse_recipe_name_to_id(response):
     """
     Parse response of the findMyFoods service call.
     Assumptions:
@@ -13,6 +13,8 @@ def parse_recipe_list(response):
               names, and everything else is
             - The recipes names are in reverse order relative to the IDs
         - Numbers >= 10**7 are recipe IDs, and all other numbers don't matter
+
+    Maps recipe names to ids.
     """
     ids = []
     names = []
@@ -24,8 +26,8 @@ def parse_recipe_list(response):
             for name in datum:
                 if 'com.cronometer' not in name:
                     names.append(name)
-    recipe_ids = {name: i for (name, i) in zip(names, reversed(ids))}
-    return recipe_ids
+    recipe_map = {name: i for (name, i) in zip(names, reversed(ids))}
+    return recipe_map
 
 
 def parse_recipe(response):

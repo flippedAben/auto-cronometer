@@ -20,6 +20,7 @@ def get_service():
     return service
 
 
+# TODO move metadata sheet to YAMl file on local computer's config files.
 def get_metadata(sheet):
     """
     Retrieve meta data on the groceries.

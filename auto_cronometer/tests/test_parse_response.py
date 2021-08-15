@@ -3,10 +3,10 @@ from pathlib import Path
 
 CUR_PATH = Path(__file__).parent.absolute()
 
-def test_parse_recipe_list():
+def test_parse_recipe_name_to_id():
     with open(CUR_PATH / 'raw_response_strings/recipe_list.txt', 'r') as f:
         response = f.read()
-    resp_dict = gwt_parser.parse_recipe_list(response)
+    resp_dict = gwt_parser.parse_recipe_name_to_id(response)
     assert resp_dict["Bean chili"] == 13456807
     assert resp_dict["Chicken adobo"] == 14718405
     assert resp_dict["Fruits"] == 13455864
