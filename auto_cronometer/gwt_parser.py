@@ -67,8 +67,9 @@ def parse_food(response):
         - There is exactly one list in the list which contains strings
             - The 2nd entry after the string 'English' shows up contains the
               name of the food.
-            - Supported measuring units start on index 5 and end when we hit
-              'g'. Any string starting with 'com.' is ignored.
+            - Supported measuring units start on an entry containing
+              'com.cronometer.client.data.Measure/' and go to 'g'. Any string
+              starting with 'com.' is ignored.
         - There is exactly one string outside of the above stated list.
             - The 3rd entry after this string is the food ID.
         - If an entry is the food ID, 3 entries later contains the conversion
@@ -87,13 +88,17 @@ def parse_food(response):
     ratios = []
     for i, datum in enumerate(data):
         if type(datum) is list:
-            j = datum.index('g')
-            units = [x for x in datum[5:j] if not x.startswith('com.cronometer.')]
+            j = datum.index('g') - 1
+            units = []
+            while not datum[j].startswith('com.cronometer.client.data.Measure/'):
+                if not datum[j].startswith('com.'):
+                    units.append(datum[j])
+                j -= 1
         elif type(datum) is int and datum == food['id']:
             ratios.append(data[i + 3])
 
     # Drop last two because they are noise
     ratios = ratios[:-2]
-    food['grams_per_unit'] = {unit:ratio for (unit, ratio) in zip(units, reversed(ratios))}
+    food['grams_per_unit'] = {unit:ratio for (unit, ratio) in zip(units, ratios)}
 
     return food
