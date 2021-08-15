@@ -59,7 +59,7 @@ def update_groceries(sheet, metadata, locked_recipes_yaml):
     # Ignore items that are "in stock" (i.e. we already have enough)
     no_metadata_items = []
     out_of_stock_data = []
-    for row in data:
+    for ingredient in data.values():
         item = row[0]
         if item in metadata:
             if not metadata[item][2]:

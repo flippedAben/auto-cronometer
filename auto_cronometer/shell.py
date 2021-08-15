@@ -34,6 +34,25 @@ class CronometerShell(cmd.Cmd):
         with open(recipe_list_yaml, 'w') as f:
             yaml.dump(list(recipe_id_list.keys()), f)
 
+    def do_init_config(self, _):
+        """
+        Initialize an config.yaml file. This file will store:
+            - whether an ingredient is in stock
+            - what group an ingredient belongs in (i.e. dairy, pantry)
+        The intent is to manually edit this file.
+        """
+        recipe_name_to_id = self.ac.get_recipe_name_to_id()
+        recipes = self.ac.get_recipes(recipe_name_to_id.values())
+        config = {}
+        for i, ingredient in recipes['ingredients'].items():
+            config[i] = {
+                'name': ingredient['name'],
+                'in_stock': False,
+                'group': 'TODO',
+            }
+        with open('config.yaml', 'w') as f:
+            yaml.dump(config, f)
+
     def completedefault(self, text, line, start_idx, end_idx):
         if os.path.isdir(text):
             return glob.glob(os.path.join(text, '*'))
