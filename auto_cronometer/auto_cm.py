@@ -6,7 +6,7 @@ import auto_cronometer.gwt_parser as gwt_parser
 
 # TODO: These constants may change. If they do, figure out why.
 # I don't know what this is, but it's necessary.
-SOME_ID = 'A5DB96C6DD4E89CED5F2C35E30045A53'
+SOME_ID = os.environ.get('cronometer_hex')
 # I don't know what this is either, but it's necessary. Something to do with how
 # GWT does its generation?
 GWT_PERM = 'E0EAD93C6F95D5F986CFD7611F67840C'

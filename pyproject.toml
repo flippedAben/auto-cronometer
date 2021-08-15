@@ -13,9 +13,6 @@ google-api-python-client = "^1.12.8"
 google-auth-httplib2 = "^0.0.4"
 google-auth-oauthlib = "^0.4.2"
 docopt = "^0.6.2"
-bs4 = "^0.0.1"
-lxml = "^4.6.3"
-tqdm = "^4.59.0"
 PyYAML = "^5.4.1"
 
 [tool.poetry.dev-dependencies]
