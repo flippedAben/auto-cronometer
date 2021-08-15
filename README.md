@@ -72,3 +72,22 @@ poetry run main -h
 List of dictionaries containing: id and name. If a recipe is in this file, then
 it is "active". This means that if you create a grocery list, it'll only use
 the active recipes' ingredients to do so.
+
+## Research: Finding the API
+
+I looked at a few sites. Many of them, such as [Web Scraping - Discovering
+Hidden APIs][1], assume the website uses REST APIs. Unfortunately, Cronometer
+does not. The above website's instructions did help, though.
+
+I used my browser's developer tools, and looked at the _Network_ tab. I found a
+request Cronometer made, and found something peculiar:
+`com.cronometer.client.CronometerService`. This reminds of Java. So, I google
+that Java line, and found [a thread of the Chronometer developers asking for
+help on GWT][2]. GWT is Google Web Toolkit. So this is what they use!
+
+I googled _how to reverse engineer GWT web apps_ and found [this tool][3].
+
+
+[1]: https://ianlondon.github.io/blog/web-scraping-discovering-hidden-apis/
+[2]: https://groups.google.com/g/google-web-toolkit/c/QAjq1OYOOYM/m/d2YFSqPPCgAJ?utm_medium=email&utm_source=footer
+[3]: https://labs.f-secure.com/blog/gwtmap-reverse-engineering-google-web-toolkit-applications/

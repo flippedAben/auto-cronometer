@@ -1,7 +1,8 @@
 config.sh
-active*.yaml
+*.yaml
 data/**
 raw_htmls/**
 dist/**
 setup_files/**
-*/__pycache__/**
+**/__pycache__/**
+geckodriver.log

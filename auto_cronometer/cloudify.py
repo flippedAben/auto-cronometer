@@ -44,7 +44,7 @@ def get_metadata(sheet):
     return metadata
 
 
-def update_groceries(sheet, metadata):
+def update_groceries(sheet, metadata, locked_recipes_yaml):
     """
     Put grocery list data on the cloud.
     """
@@ -53,7 +53,7 @@ def update_groceries(sheet, metadata):
 
     # Read the local grocery list from ingredients.csv files
     # Ignore the header
-    data = grocery_list.get_grocery_list('data')[1:]
+    data = grocery_list.get_grocery_list(locked_recipes_yaml)[1:]
 
     # Ignore items that are "in stock" (i.e. we already have enough)
     no_metadata_items = []
@@ -117,7 +117,7 @@ def update_groceries(sheet, metadata):
     ).execute()
 
 
-def upload_grocery_list():
+def upload_grocery_list(locked_recipes_yaml):
     sheet = get_service().spreadsheets()
     metadata = get_metadata(sheet)
-    update_groceries(sheet, metadata)
+    update_groceries(sheet, metadata, locked_recipes_yaml)
