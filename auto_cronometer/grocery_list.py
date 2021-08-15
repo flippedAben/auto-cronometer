@@ -1,5 +1,4 @@
 import yaml
-from pprint import pprint
 
 
 def get_grocery_list(locked_recipes_yaml):
@@ -8,8 +7,16 @@ def get_grocery_list(locked_recipes_yaml):
 
     ingredients = consolidate_recipes(locked_recipes)
     convert_units(ingredients, locked_recipes['ingredients'])
-    pprint(ingredients)
 
+    # Exclude items in stock and apply grouping
+    with open('config.yaml', 'r') as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+    for i, ingredient in ingredients.items():
+        ingredient['group'] = config[i]['group']
+    ingredients = {
+        x: y
+        for x, y in ingredients.items()
+        if not config[x]['in_stock']}
     return ingredients
 
 

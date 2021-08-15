@@ -50,6 +50,9 @@ class CronometerShell(cmd.Cmd):
                 'in_stock': False,
                 'group': 'TODO',
             }
+        # TODO if config.yaml exists, don't overwrite, instead add default
+        # values for entries that don't yet exist, and remind the user to update
+        # them manually.
         with open('config.yaml', 'w') as f:
             yaml.dump(config, f)
 
