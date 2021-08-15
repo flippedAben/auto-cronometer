@@ -6,28 +6,28 @@ def get_grocery_list(locked_recipes_yaml):
     with open(locked_recipes_yaml, 'r') as f:
         locked_recipes = yaml.load(f, Loader=yaml.Loader)
 
-    recipes = locked_recipes['recipes']
-    ingredients = consolidate_recipes(recipes)
-
-    grams_per_unit = locked_recipes['grams_per_unit']
-    convert_units(ingredients, grams_per_unit)
-
+    ingredients = consolidate_recipes(locked_recipes)
+    convert_units(ingredients, locked_recipes['ingredients'])
     pprint(ingredients)
+
     return ingredients
 
 
-def consolidate_recipes(recipes):
+def consolidate_recipes(locked_recipes):
     """
     Convert a list of recipes into a list of ingredients. Ingredients of the
     exact same name will be combined additively.
 
     Returns a list of ingredients with amounts in grams.
     """
+    recipes = locked_recipes['recipes']
+    ingredient_metadata = locked_recipes['ingredients']
+
     ingredients = {}
     for recipe in recipes:
         for ingredient in recipe['ingredients']:
             i = ingredient['id']
-            name = ingredient['name']
+            name = ingredient_metadata[i]['name']
             grams = ingredient['grams']
             if i in ingredients:
                 ingredients[i]['grams'] += grams
@@ -39,7 +39,7 @@ def consolidate_recipes(recipes):
     return ingredients
 
 
-def convert_units(ingredients, grams_per_unit):
+def convert_units(ingredients, ingredient_metadata):
     """
     Convert the amount of each ingredient (in grams) to a friendlier unit.
 
@@ -49,13 +49,14 @@ def convert_units(ingredients, grams_per_unit):
 
     for i in ingredients:
         ingredient = ingredients[i]
-        grams_per_unit[i]['lb'] = grams_per_unit[i]['oz'] * 16
+        grams_per_unit = ingredient_metadata[i]['grams_per_unit']
+        grams_per_unit['lb'] = grams_per_unit['oz'] * 16
 
         # Default to grams
         friendliest_unit = 'g'
         amount = float(ingredient['grams'])
         min_digits = len(str(amount))
-        for unit, ratio in grams_per_unit[i].items():
+        for unit, ratio in grams_per_unit.items():
             # Get rid of insane rounding errors
             unit_amount = round(ingredient['grams'] / ratio, 5)
             digits = len(str(unit_amount))
