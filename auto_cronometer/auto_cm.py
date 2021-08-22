@@ -37,9 +37,11 @@ class AutoCronometer():
         if match:
             # Assume there is only one such hex string in this file.
             gwt_perm_id = match.group(1)
+            print(gwt_perm_id)
             self.headers = {
                 'x-gwt-permutation': gwt_perm_id,
                 'content-type': 'text/x-gwt-rpc; charset=UTF-8',
+                'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
             }
             self.driver.get(f'https://cronometer.com/cronometer/{gwt_perm_id}.cache.js')
             match = gwt_id_re.findall(self.driver.page_source)
@@ -47,6 +49,7 @@ class AutoCronometer():
                 # Assume there are only 2 IDs, and the second ID is the policy
                 # file ID.
                 self.gwt_policy_file_id = match[1]
+                print(self.gwt_policy_file_id)
             else:
                 print('Could not get the GWT policy file ID. Qutting...')
                 exit(1)
@@ -80,16 +83,19 @@ class AutoCronometer():
         return self.driver.get_cookie('sesnonce')
 
     def post(self, data):
-        session = requests.Session()
-        resp = session.post(
-            f'{API_URL}/app',
-            headers=self.headers,
-            data=data)
-        return resp.content
+        with requests.Session() as session:
+            resp = session.post(
+                f'{API_URL}/app',
+                data=data,
+                headers=self.headers,
+                timeout=1)
+            print(f'{resp.status_code}: Got recipes list')
+            return resp.content
 
     def get_recipe_name_to_id(self):
         # sesnonce changes sometimes, so make sure to get it before requesting
         data = f'7|0|6|{API_URL}/|{self.gwt_policy_file_id}|{SERVICE_NAME}|findMyFoods|java.lang.String/2004016611|{self.nonce}|1|2|3|4|1|5|6|'
+        print(data)
         return gwt_parser.parse_recipe_name_to_id(self.post(data))
 
     def get_recipes(self, recipe_ids):
@@ -99,7 +105,9 @@ class AutoCronometer():
             - a unit conversion mapping (grams per unit) per unique ingredient
 
         """
+        print('Getting recipes')
         recipes_raw = asyncio.run(self.get_foods_raw(recipe_ids))
+        print('Got recipes')
 
         recipes = {
             'recipes': [],
@@ -114,7 +122,9 @@ class AutoCronometer():
             ingredient_ids.extend(i['id'] for i in recipe['ingredients'])
         ingredient_ids = list(set(ingredient_ids))
 
+        print('Getting ingredients')
         ingredients_raw = asyncio.run(self.get_foods_raw(ingredient_ids))
+        print('Got ingredients')
 
         for food_raw in ingredients_raw:
             food = gwt_parser.parse_food(food_raw)
@@ -144,9 +154,14 @@ class AutoCronometer():
         Note: the food itself may or may not be actually raw.
         """
         data = f'7|0|7|{API_URL}/|{self.gwt_policy_file_id}|{SERVICE_NAME}|getFood|java.lang.String/2004016611|I|{self.nonce}|1|2|3|4|2|5|6|7|{food_id}|'
+        print(f'Requesting food {food_id}')
+        # TODO: sometimes this hangs. Is it because Cronometer is blocking me
+        # due to too many requests?
         async with session.post(
                 f'{API_URL}/app',
                 headers=self.headers,
-                data=data) as resp:
+                data=data,
+                timeout=5) as resp:
+            print(f'{resp.status}: Got food {food_id}')
             return await resp.text()
 
