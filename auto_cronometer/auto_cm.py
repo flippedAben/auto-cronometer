@@ -3,22 +3,12 @@ import asyncio
 from selenium import webdriver
 import os
 import time
+import re
 import requests
 import auto_cronometer.gwt_parser as gwt_parser
 
-# TODO: These constants may change. If they do, figure out why.
-# I don't know what this is, but it's necessary.
-SOME_ID = os.environ.get('cronometer_hex')
-# I don't know what this is either, but it's necessary. Something to do with how
-# GWT does its generation?
-GWT_PERM = 'E0EAD93C6F95D5F986CFD7611F67840C'
-
 API_URL = 'https://cronometer.com/cronometer'
 SERVICE_NAME = 'com.cronometer.client.CronometerService'
-HEADERS = {
-    'x-gwt-permutation': GWT_PERM,
-    'content-type': 'text/x-gwt-rpc; charset=UTF-8',
-}
 
 
 class AutoCronometer():
@@ -29,6 +19,8 @@ class AutoCronometer():
         self.driver = webdriver.Firefox(
             executable_path=os.environ.get('geckodriver_path'),
             log_path=os.environ.get('geckodriver_log_path'))
+
+        self._get_gwt_metadata()
         self._login()
 
     def __enter__(self):
@@ -37,7 +29,33 @@ class AutoCronometer():
     def __exit__(self, type, value, traceback):
         self.driver.close()
 
+    def _get_gwt_metadata(self):
+        # Assume that IDs are hex strings of size 32.
+        gwt_id_re = re.compile(r"'?([A-Z0-9]{32})'?")
+        self.driver.get('https://cronometer.com/cronometer/cronometer.nocache.js')
+        match = gwt_id_re.search(self.driver.page_source)
+        if match:
+            # Assume there is only one such hex string in this file.
+            gwt_perm_id = match.group(1)
+            self.headers = {
+                'x-gwt-permutation': gwt_perm_id,
+                'content-type': 'text/x-gwt-rpc; charset=UTF-8',
+            }
+            self.driver.get(f'https://cronometer.com/cronometer/{gwt_perm_id}.cache.js')
+            match = gwt_id_re.findall(self.driver.page_source)
+            if match:
+                # Assume there are only 2 IDs, and the second ID is the policy
+                # file ID.
+                self.gwt_policy_file_id = match[1]
+            else:
+                print('Could not get the GWT policy file ID. Qutting...')
+                exit(1)
+        else:
+            print('Could not get the GWT permutation ID. Qutting...')
+            exit(1)
+
     def _login(self):
+        print('Logging in to Cronometer')
         self.driver.get('https://cronometer.com/login/')
         user_ele = self.driver.find_element_by_name('username')
         pass_ele = self.driver.find_element_by_name('password')
@@ -50,6 +68,7 @@ class AutoCronometer():
         # requests for everything else.
         while self.get_nonce_cookie() is None:
             time.sleep(0.1)
+        print('Logged in')
 
     @property
     def nonce(self):
@@ -64,13 +83,13 @@ class AutoCronometer():
         session = requests.Session()
         resp = session.post(
             f'{API_URL}/app',
-            headers=HEADERS,
+            headers=self.headers,
             data=data)
         return resp.content
 
     def get_recipe_name_to_id(self):
         # sesnonce changes sometimes, so make sure to get it before requesting
-        data = f'7|0|6|{API_URL}/|{SOME_ID}|{SERVICE_NAME}|findMyFoods|java.lang.String/2004016611|{self.nonce}|1|2|3|4|1|5|6|'
+        data = f'7|0|6|{API_URL}/|{self.gwt_policy_file_id}|{SERVICE_NAME}|findMyFoods|java.lang.String/2004016611|{self.nonce}|1|2|3|4|1|5|6|'
         return gwt_parser.parse_recipe_name_to_id(self.post(data))
 
     def get_recipes(self, recipe_ids):
@@ -124,10 +143,10 @@ class AutoCronometer():
 
         Note: the food itself may or may not be actually raw.
         """
-        data = f'7|0|7|{API_URL}/|{SOME_ID}|{SERVICE_NAME}|getFood|java.lang.String/2004016611|I|{self.nonce}|1|2|3|4|2|5|6|7|{food_id}|'
+        data = f'7|0|7|{API_URL}/|{self.gwt_policy_file_id}|{SERVICE_NAME}|getFood|java.lang.String/2004016611|I|{self.nonce}|1|2|3|4|2|5|6|7|{food_id}|'
         async with session.post(
                 f'{API_URL}/app',
-                headers=HEADERS,
+                headers=self.headers,
                 data=data) as resp:
             return await resp.text()
 

@@ -57,16 +57,12 @@ This file should look like this:
 geckodriver_path=<path to geckodriver>
 cronometer_user=<cronometer username>
 cronometer_pass=<cronometer password>
-cronometer_hex=<ask the author>
 google_sheets_api_sheet_id=<existing google sheet that will contain the grocery list>
 export google_sheets_api_sheet_id=<the sheet you want to edit>
 export GOOGLE_APPLICATION_CREDENTIALS=<path to your JSON file>
 ```
 
 Don't share it with anyone. Apply your own security measures.
-
-`cronometer_hex` is still a work in progress. If you log into Cronometer
-manually, and then inspect the network traffic, you'll see something like:
 
 ```
 7|0|7|https://cronometer.com/cronometer/|<cronometer_hex>|...
