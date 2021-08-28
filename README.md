@@ -22,7 +22,7 @@ This tool was made with my particular behaviors in mind:
 ## Assumptions
 
 - The Cronometer backend uses GWT and doesn't get a major API overhaul. If that
-  happens, this tool will probably not work.
+  happens, this tool will likely break.
 
 ## Setup
 
@@ -64,18 +64,23 @@ export GOOGLE_APPLICATION_CREDENTIALS=<path to your JSON file>
 
 Don't share it with anyone. Apply your own security measures.
 
-```
-7|0|7|https://cronometer.com/cronometer/|<cronometer_hex>|...
-```
-
-TODO: Figure out how to get this via the code, and not manually.
-
 ## Usage
 
 ```bash
 source config.sh
 poetry run main -h
 ```
+
+### The server
+
+The AutoCronometer server establishes a connection with Cronometer. It's
+basically a web browser (via Selenium) running headless in the background.
+The other commands require the server to be running in order to work.
+
+Logging in multiple times results in Cronometer blocking your account for a
+while. The server logs into Cronometer using the credentials specified in
+`config.sh`, so make sure not spam server startup.
+
 
 ### config.yaml
 

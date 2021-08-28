@@ -6,6 +6,8 @@ from multiprocessing.connection import Listener
 from selenium import webdriver
 import os
 import re
+import signal
+import sys
 import time
 
 ADDRESS = ('localhost', 6100)
@@ -26,7 +28,7 @@ class AutoCronometerServer():
         return self
 
     def __exit__(self, type, value, traceback):
-        self.driver.close()
+        self.driver.quit()
 
     def _login(self):
         print('Logging in to Cronometer')
@@ -45,7 +47,9 @@ class AutoCronometerServer():
         print('Logged in')
 
     def listen(self):
+        signal.signal(signal.SIGINT, lambda _, __: sys.exit())
         with Listener(ADDRESS) as listener:
+            print(f'Server started on {ADDRESS}. Ctrl-c to stop.')
             while True:
                 with listener.accept() as conn:
                     print('Connection accepted', listener.last_accepted)

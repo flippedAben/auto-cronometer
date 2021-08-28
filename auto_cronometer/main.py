@@ -29,7 +29,6 @@ def main():
     args = docopt(__doc__)
     if args['server']:
         with AutoCronometerServer() as server:
-            print('Starting the server...')
             server.listen()
     elif args['list']:
         client = AutoCronometerClient()
